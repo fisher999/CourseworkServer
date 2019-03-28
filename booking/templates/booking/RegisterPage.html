@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+      .center {
+        margin: auto;
+        width: 30%;
+        border: 3px solid #73AD21;
+        padding: 10px;
+      }
+      .centered-element {
+        width: 30%;
+        border: 3px solid #73AD21;
+        position: absolute;
+        left: 50%;
+        margin-left: -50px;
+        top: 50%;
+        margin-top: -50px;
+      }
+    </style>
+</head>
+<body>
+<div class="center">
+  <form action="/mainpage/" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="login" name="login"/>
+    <input type="submit" value="register" name="register"/>
+  </form>
+</div>
+</body>
+
+
+
+

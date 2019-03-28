@@ -5,22 +5,33 @@ from booking.Classes.Singletone import Singleton
 
 class UserManager(Singleton):
 
-    def create_user(self: 'UserManager', username:str, password):
+    def create_user(self: 'UserManager', username: str, password):
         user = User(name=username, password=password)
+
+        allUsers = User.objects.all()
+
+        for user in allUsers:
+            if user.name == username:
+                return
+
         user.save()
-        print('User with name {} and password {} was created!'.format(user.name, user.password))
-        return user
+        string = 'User with name {} and password {} was created!'.format(user.name, user.password)
+        return (user, string)
 
     def remove_user(self, userId: str):
         rows = User.objects.all()
         if rows.count() > 0:
             user = rows[0]
-            print('User with id{} and name {} and  password {} was removed'.format(user.id,user.name,user.password))
+            deleteResult = 'User with id{} and name {} and  password {} was removed'.format(user.id, user.name, user.password)
 
             for row in rows:
                 row.delete()
 
+        return deleteResult
 
+    @staticmethod
+    def allUsers():
+        return User.objects.all()
 
 
 
