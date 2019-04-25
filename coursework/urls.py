@@ -17,6 +17,6 @@ from django.contrib import admin
 from django.conf.urls import include, url
 
 urlpatterns = [
-    url('', include('booking.urls')),
+    url(r'', include('booking.urls')),
     url(r'^admin/', admin.site.urls),
 ]

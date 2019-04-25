@@ -1,37 +1,48 @@
 from __future__ import annotations
-from django.db import models
-from booking.models import User
+from django.contrib.auth import authenticate, login as auth_login
+import base64
 from booking.Classes.Singletone import Singleton
+from django.contrib import auth
+import django.http
+
 
 class UserManager(Singleton):
 
-    def create_user(self: 'UserManager', username: str, password):
-        user = User(name=username, password=password)
-
-        allUsers = User.objects.all()
-
-        for user in allUsers:
-            if user.name == username:
-                return
-
+    def create_user(self: 'UserManager', username: str,email: str, password: str):
+        from django.contrib.auth.models import User
+        user = User.objects.create_user(username=username, email=email, password=password)
         user.save()
         string = 'User with name {} and password {} was created!'.format(user.name, user.password)
-        return (user, string)
+        return user
 
-    def remove_user(self, userId: str):
-        rows = User.objects.all()
-        if rows.count() > 0:
-            user = rows[0]
-            deleteResult = 'User with id{} and name {} and  password {} was removed'.format(user.id, user.name, user.password)
+    def authorization(self: 'UserManager', username: str, password: str, request):
+        user = auth.authenticate()
 
-            for row in rows:
-                row.delete()
-
-        return deleteResult
 
     @staticmethod
     def allUsers():
+        from django.contrib.auth.models import User
         return User.objects.all()
+
+    @staticmethod
+    def didAuth(request):
+        if 'HTTP_AUTHORIZATION' in request.META:
+            auth = request.META['HTTP_AUTHORIZATION'].split()
+            if len(auth) == 2:
+                if auth[0].lower() == "basic":
+                    uname, passwd = base64.b64decode(auth[1]).decode('utf-8').split(':')
+                    print(uname)
+                    print(passwd)
+                    user = authenticate(username=uname, password=passwd)
+                    if user is not None:
+                        if user.is_active:
+                            auth_login(request, user)
+                            return (True, user)
+                        else:
+                            return (False, None)
+
+        return (False, None)
+
 
 
 

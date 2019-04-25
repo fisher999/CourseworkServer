@@ -1,58 +1,70 @@
 from django.db import models
+from django.conf import settings
+import datetime
 
 # Create your models here.
-
-class User(models.Model):
-    name = models.CharField(max_length=30)
-    password = models.CharField(max_length=30)
-
-class UserBookingHistory(models.Model):
-    booking = models.ForeignKey('Booking', on_delete=models.CASCADE, primary_key=True, unique=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    date = models.DateTimeField()
-
 class Hotel(models.Model):
-    address = models.ForeignKey('Address', on_delete=models.CASCADE)
-    location = models.ForeignKey('Location', on_delete=models.CASCADE)
-    name = models.CharField(max_length=30)
-    price = models.FloatField()
-    rating = models.FloatField()
+    country = models.ForeignKey('Country', on_delete=models.CASCADE, null=True)
+    street = models.CharField(max_length=50, null=True)
+    city = models.ForeignKey('City', on_delete=models.CASCADE, null=True)
+    house_index = models.CharField(max_length=30, null=True)
+    name = models.CharField(max_length=50)
+
+    imageUrl = models.CharField(max_length=255)
+    description = models.CharField(max_length=500, null=True)
+
 
 class Booking(models.Model):
-    hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE)
-    originOfAccomodation = models.DateTimeField()
-    endOfAccomodation = models.DateTimeField()
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    apartments = models.ForeignKey('Apartments', on_delete=models.CASCADE, null=True)
+    origin_accomodation = models.DateTimeField()
+    end_accomodation = models.DateTimeField()
     amountOfPersons = models.IntegerField()
+    date = models.DateTimeField(null=True)
 
-class Location(models.Model):
+
+class Country(models.Model):
+    country = models.CharField(max_length=30)
+
+
+class City(models.Model):
     city = models.CharField(max_length=30)
-    district = models.CharField(max_length=50)
 
-class Address(models.Model):
-    street = models.CharField(max_length=50)
-    houseIndex = models.CharField(max_length=50)
 
 class Feedback(models.Model):
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     rating = models.FloatField()
-    comment = models.CharField(max_length=200)
+    comment = models.CharField(max_length=1000)
+    date = models.DateTimeField()
+
 
 class Apartments(models.Model):
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE)
     apartmentType = models.ForeignKey('ApartmentType', on_delete=models.CASCADE)
     conditions = models.ForeignKey('Conditions', on_delete=models.CASCADE)
+    price = models.FloatField(default=0)
+
 
 class ApartmentType(models.Model):
     name = models.CharField(max_length=50)
     numberOfRooms = models.IntegerField()
 
+
 class Conditions(models.Model):
-    description = models.CharField(max_length=200)
+    wi_fi = models.BooleanField(max_length=1, default=False)
+    pool = models.BooleanField(max_length=1, default=False)
+    spa = models.BooleanField(max_length=1, default=False)
+    allowed_pets = models.BooleanField(max_length=1, default=False)
+    conditioner = models.BooleanField(max_length=1, default=False)
+    restaraunt = models.BooleanField(max_length=1, default=False)
+    bar = models.BooleanField(max_length=1, default=False)
+    gym = models.BooleanField(max_length=1, default=False)
 
 
-
-
+class ApartmentImages(models.Model):
+    apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE)
+    image_url = models.CharField(max_length=255)
 
 
 
