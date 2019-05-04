@@ -32,7 +32,7 @@ class FeedbackManager:
         return jsonObject
 
     @staticmethod
-    def postFeedback(user, hotel_id, args):
+    def postFeedback(user, hotel_id, args, currentUser):
         hotel = Hotel.objects.get(id=hotel_id)
         rating = args['rating']
         comment = args['comment']
@@ -47,6 +47,10 @@ class FeedbackManager:
         userDict = {}
         userDict['id'] = user.id
         userDict['username'] = user.username
+        if currentUser.id == user.id:
+            userDict['isMyComment'] = True
+        else:
+            userDict['isMyComment'] = False
         feedbackDict['user'] = userDict
         feedbackDict['rating'] = feedback.rating
         feedbackDict['date'] = feedback.date.strftime('%d-%m-%Y %H:%M')
@@ -72,7 +76,7 @@ class FeedbackManager:
         response['success'] = False
         response['message'] = 'Feedback not deleted! (Its not exist!)'
         json_object = json.dumps(response).encode('utf8')
-        
+
         return json_object
 
 
