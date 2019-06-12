@@ -8,12 +8,17 @@ import django.http
 
 class UserManager(Singleton):
 
-    def create_user(self: 'UserManager', username: str,email: str, password: str):
+    @staticmethod
+    def create_user(params):
+        username = params['username']
+        password = params['password']
         from django.contrib.auth.models import User
-        user = User.objects.create_user(username=username, email=email, password=password)
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            return False
+        user = User.objects.create_user(username=username, email='', password=password)
         user.save()
-        string = 'User with name {} and password {} was created!'.format(user.name, user.password)
-        return user
+        return True
 
     def authorization(self: 'UserManager', username: str, password: str, request):
         user = auth.authenticate()

@@ -49,7 +49,7 @@ class Apartments(models.Model):
 class ApartmentType(models.Model):
     name = models.CharField(max_length=50)
     numberOfRooms = models.IntegerField()
-
+    maxPersons = models.IntegerField(default=2)
 
 class Conditions(models.Model):
     wi_fi = models.BooleanField(max_length=1, default=False)

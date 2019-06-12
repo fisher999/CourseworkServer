@@ -6,7 +6,7 @@ from django.db.models import Min, Avg
 
 class HotelManager:
     @staticmethod
-    def getHotelsJson():
+    def getHotels():
         hotels = Hotel.objects.all()
         hotelDictArray = []
 
@@ -30,16 +30,29 @@ class HotelManager:
                 dict['description'] = hotel.description
             hotelDictArray.append(dict)
 
-        jsonObject = json.dumps(hotelDictArray).encode('utf8')
+        return hotelDictArray
+
+    @staticmethod
+    def getHotelsJsonAtPage(page):
+
+        hotelDictArray = HotelManager.getHotels()
+
+        hotel_pages = HotelManager.split(hotelDictArray, 5, [])
+
+        jsonObject = json.dumps(hotel_pages[int(page)]).encode('utf8')
 
         return jsonObject
 
     @staticmethod
-    def getHotelsJsonAtPage(page):
-        json = HotelManager.getHotelsJson()
-        pages = json.count / 5
-        newJson = []
-        if page < pages:
-            for i in range(page*5, (page+1) * 5):
-                newJson.append(json[i])
-        return newJson
+    def split(arr, size, arrs):
+        if len(arr) > size:
+            new_array = []
+            for index in range(0, size):
+                new_array.append(arr.pop(0))
+            arrs.append(new_array)
+            HotelManager.split(arr, size, arrs)
+        else:
+            arrs.append(arr)
+            return arrs
+
+        return arrs

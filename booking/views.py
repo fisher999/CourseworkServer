@@ -14,27 +14,26 @@ from booking.Classes.BookingManager import BookingManager
 
 
 def register(request):
-    userManager = UserManager()
-
+    dict = {}
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
-        form = RegisterForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-
-            login = form.cleaned_data['login']
-            password = form.cleaned_data['password']
-
-            if 'login' in request.POST:
-                for user in userManager.allUsers():
-                    if user.name == login  and user.password == password:
-                        return HttpResponseRedirect('/mainpage/')
-
-            return HttpResponseRedirect('')
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        success = UserManager.create_user(body)
+        dict['success'] = success
+        if success:
+            dict['message'] = 'Пользователь успешно зарегистрирован'
+        else:
+            dict['message'] = 'Такой пользователь уже зарегистрирован.'
+        json_object = json.dumps(dict)
+        return HttpResponse(json_object)
 
     else:
-        form = RegisterForm()
-        return render(request, 'booking/RegisterPage.html', {'form': form})
+        dict['success'] = False
+        dict['message'] = 'method should be post!!'
+        json_object = json.dumps(dict)
+        return HttpResponse(json_object)
+
 
 def main_page(request):
     return render(request, 'booking/MainPage.html')
@@ -94,10 +93,18 @@ def getHotels(request):
     response['WWW-Authenticate'] = 'Not auth'
     return response
 
-def getHotelsAtPage(request):
+def getHotelsAtPage(request, page):
     if UserManager.didAuth(request)[0]:
-        path = request.path
-        json = HotelManager.getHotelsJsonAtPage()
+        json = HotelManager.getHotelsJsonAtPage(page)
+        return HttpResponse(json)
+    else:
+        return HttpResponseForbidden( \
+            content='Your account is not active.')
+
+    response = HttpResponse()
+    response.status_code = 401
+    response['WWW-Authenticate'] = 'Not auth'
+    return response
 
 def getApartmentsForId(request,hotel_id):
     (didAuth, user) = UserManager.didAuth(request)
@@ -143,21 +150,21 @@ def feedbacksForHotelId(request, hotel_id):
     response = json.dumps(res)
     return HttpResponse(response)
 
-def make_booking_for_apartment_id(request, apartment_id):
+def make_booking_for_apartment_id(request):
     (didAuth, user) = UserManager.didAuth(request)
     if didAuth:
         if request.method == "POST":
             body_unicode = request.body.decode('utf-8')
             body = json.loads(body_unicode)
-            booking = BookingManager.make_booking(apartment_id, body)
+            booking = BookingManager.make_booking(body, user)
             dict = {}
             if booking is not None:
                 id = booking.id
                 dict['success'] = True
-                dict['message'] = 'Бронирование № ' + id + ' успешно завершено'
+                dict['message'] = 'Бронирование № ' + str(id) + ' успешно завершено.'
             else:
                 dict['success'] = False
-                dict['message'] = 'Произошла какая то ошибка на сервере'
+                dict['message'] = 'Произошла какая то ошибка на сервере.'
 
             json_object = json.dumps(dict)
             return HttpResponse(json_object)
@@ -193,6 +200,38 @@ def get_booking_list(request):
     dict['message'] = 'Not auth!'
     json_object = json.dumps(dict)
     return HttpResponse(json_object)
+
+
+def get_apartments_for_user_id(request):
+    (didAuth, user) = UserManager.didAuth(request)
+    if didAuth:
+        if request.method == "GET":
+            apartments_list = ApartmentsManager.getApartmentsForUserId(user.id)
+            return HttpResponse(apartments_list)
+        else:
+            dict = {}
+            dict['success'] = False
+            dict['message'] = 'method should be get!!'
+            json_object = json.dumps(dict)
+            return HttpResponse(json_object)
+
+    dict = {}
+    dict['success'] = False
+    dict['message'] = 'Not auth!'
+    json_object = json.dumps(dict)
+    return HttpResponse(json_object)
+
+def get_booking_csv(request):
+    (didAuth, user) = UserManager.didAuth(request)
+    if didAuth:
+        return BookingManager.get_booking_list_csv_response(user.id)
+    print('fuck')
+    dict = {}
+    dict['success'] = False
+    dict['message'] = 'Not auth!'
+    json_object = json.dumps(dict)
+    return HttpResponse(json_object)
+
 
 
 
